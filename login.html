@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FoodieGo | Login</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="container">
+  <div class="row justify-content-center">
+    <div class="col-md-5">
+      <div class="card login-card shadow-lg p-4">
+        <h3 class="text-center mb-3">Welcome Back</h3>
+        <p class="text-center text-muted mb-4">Login to continue 🍕</p>
+
+        <input id="email" type="email" class="form-control mb-3" placeholder="Email Address">
+        <input id="password" type="password" class="form-control mb-3" placeholder="Password">
+
+        <select id="role" class="form-control mb-3">
+          <option value="customer">Customer</option>
+          <option value="admin">Admin</option>
+        </select>
+
+        <button class="btn btn-primary w-100" onclick="login()">Login</button>
+
+        <p class="text-center mt-3">
+          Don't have an account?
+          <a href="register.html">Register here</a>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+async function login() {
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value.trim();
+  const role = document.getElementById("role").value;
+
+  if (!email || !password) {
+    alert("Please enter email and password");
+    return;
+  }
+
+  // 🔥 Choose endpoint by role
+  const url = role === "admin"
+    ? "http://127.0.0.1:5000/login/admin"
+    : "http://127.0.0.1:5000/login/customer";
+
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password })
+    });
+
+    const data = await response.json();
+    console.log("Login response:", data);
+
+    if (!response.ok) {
+      alert(data.message || "Login failed");
+      return;
+    }
+
+    // Save user
+    localStorage.setItem("user", JSON.stringify(data));
+
+    // Redirect
+    if (data.role === "admin") {
+      window.location.href = "admin.html";
+    } else {
+      window.location.href = "dashboard.html";
+    }
+
+  } catch (err) {
+    console.error("Login error:", err);
+    alert("Server error. Is Flask running?");
+  }
+}
+</script>
+
+</body>
+</html>

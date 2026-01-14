@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FoodieGo | Profile</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body { background-color: #f8f9fa; }
+
+   
+    .navbar { 
+      background-color: #4ACF50; 
+      height: 80px; 
+      padding: 0 2rem; 
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2); 
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+    }
+    .navbar .navbar-brand { font-size: 1.8rem; color: #fff; text-decoration: none; }
+    .navbar .d-flex .btn-light { background-color: #fff; color: #4ACF50; border: none; transition: 0.3s; }
+    .navbar .d-flex .btn-light:hover { background-color: #e0e0e0; }
+    .navbar .d-flex .btn-outline-light { color: #fff; border: 1px solid #fff; transition: 0.3s; }
+    .navbar .d-flex .btn-outline-light:hover { background-color: #fff; color: #4ACF50; }
+
+    .card { border-radius: 12px; }
+    .card h3 { color: #4ACF50; margin-bottom: 1.5rem; text-align: center; }
+    .form-control { border-radius: 8px; }
+    .btn-primary { background-color: #4ACF50; border: none; transition: 0.3s; }
+    .btn-primary:hover { background-color: #3da63d; }
+
+    @media (max-width: 576px) {
+      .container { padding: 0 1rem; }
+      .card { padding: 1.5rem; }
+      .card h3 { font-size: 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+ 
+  <nav class="navbar mb-4">
+    <a class="navbar-brand" href="#">🍔 FoodieGo</a>
+    <div class="d-flex gap-2">
+      <a href="cart.html" class="btn btn-light btn-sm">🛒 Cart</a>
+      <a href="dashboard.html" class="btn btn-outline-light btn-sm">Dashboard</a>
+      <button class="btn btn-outline-light btn-sm" onclick="logout()">Logout</button>
+    </div>
+  </nav>
+
+ 
+  <div class="container mt-4 col-md-6">
+    <div class="card shadow p-4">
+      <h3>User Profile</h3>
+      <input class="form-control mb-3" placeholder="Full Name" value="John Doe">
+      <input class="form-control mb-3" placeholder="Email" value="john@email.com">
+      <input class="form-control mb-3" placeholder="Phone" value="+66 912 345 678">
+      <input class="form-control mb-3" placeholder="Address" value="123 Sukhumvit Rd, Bangkok">
+      <button class="btn btn-primary w-100">Update Profile</button>
+    </div>
+  </div>
+
+  <script>
+    function logout() {
+      alert("Logging out...");
+     
+    }
+  </script>
+
+</body>
+</html>

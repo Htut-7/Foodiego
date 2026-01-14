@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>FoodieGo | Address</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body class="bg-light">
+
+<div class="container mt-5" style="max-width:600px">
+<h3 class="mb-4">📍 Add Delivery Address</h3>
+
+<input id="line" class="form-control mb-3" placeholder="Address line">
+<input id="city" class="form-control mb-3" placeholder="City">
+<input id="postal" class="form-control mb-3" placeholder="Postal code">
+<input id="phone" class="form-control mb-3" placeholder="Phone number">
+
+<button class="btn btn-success w-100" onclick="saveAddress()">Save Address</button>
+</div>
+
+<script>
+const user = JSON.parse(localStorage.getItem("user"));
+if(!user) location.href="login.html";
+
+function saveAddress(){
+  fetch("http://127.0.0.1:5000/addresses",{
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body:JSON.stringify({
+      user_id: user.id,
+      address_line: document.getElementById("line").value,
+      city: document.getElementById("city").value,
+      postal_code: document.getElementById("postal").value,
+      phone: document.getElementById("phone").value
+    })
+  })
+  .then(res=>res.json())
+  .then(()=>{
+    alert("Address saved!");
+    location.href="cart.html";
+  });
+}
+</script>
+
+</body>
+</html>

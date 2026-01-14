@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FoodieGo | Admin Dashboard</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+body, html { margin:0; padding:0; height:100%; font-family:'Poppins',sans-serif; }
+.wrapper { display:flex; height:100vh; background:#f4f7fa; }
+.sidebar { width:250px; background:#2c3e50; color:#fff; flex-shrink:0; display:flex; flex-direction:column; }
+.sidebar .brand { font-size:1.5rem; font-weight:700; padding:20px; border-bottom:1px solid #34495e; }
+.sidebar .menu { flex-grow:1; padding-top:20px; }
+.sidebar .menu button { display:block; width:100%; padding:15px 20px; border:none; background:none; color:#fff; text-align:left; font-weight:500; font-size:0.95rem; cursor:pointer; transition:0.3s; margin-bottom:5px; border-left:4px solid transparent; }
+.sidebar .menu button:hover, .sidebar .menu button.active { background:#34495e; border-left:4px solid #27ae60; }
+.sidebar .logout { padding:20px; }
+.content { flex-grow:1; overflow-y:auto; padding:30px; }
+.card { border-radius:12px; background:#fff; box-shadow:0 4px 15px rgba(0,0,0,0.08); padding:25px; margin-bottom:1.5rem; transition:transform 0.2s; }
+.card:hover { transform:translateY(-3px); }
+table { width:100%; border-collapse:collapse; }
+table th, table td { padding:12px 15px; text-align:left; font-size:0.95rem; }
+table thead { background:#34495e; color:#fff; }
+table tbody tr { border-bottom:1px solid #e0e0e0; }
+table tbody tr:hover { background:#f1f3f6; }
+.badge-status { padding:0.4rem 0.7rem; font-size:0.85rem; border-radius:8px; }
+.btn-add { background:#27ae60; color:#fff; border-radius:6px; transition:0.3s; }
+.btn-add:hover { background:#219150; }
+.btn-edit { background:#2980b9; color:#fff; border-radius:6px; transition:0.3s; }
+.btn-edit:hover { background:#1f5d8a; }
+.btn-delete { background:#c0392b; color:#fff; border-radius:6px; transition:0.3s; }
+.btn-delete:hover { background:#962d22; }
+input.form-control, select.form-control { border-radius:6px; border:1px solid #ccc; transition:0.3s; }
+input.form-control:focus, select.form-control:focus { border-color:#2980b9; box-shadow:0 0 5px rgba(41,128,185,0.2); }
+h4 { font-weight:600; color:#2c3e50; margin-bottom:15px; }
+.chart-row { display:flex; gap:20px; flex-wrap:wrap; margin-bottom:20px; }
+.chart-card { flex:1; min-width:280px; }
+@media(max-width:768px){ .wrapper{flex-direction:column;} .sidebar{width:100%;flex-direction:row; overflow-x:auto;} .sidebar .menu button{display:inline-block;} }
+</style>
+</head>
+<body>
+
+<div class="wrapper">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="brand">🍔 FoodieGo</div>
+    <div class="menu">
+      <button class="active" onclick="showSection('dashboard', event)">Dashboard</button>
+      <button onclick="showSection('users', event)">Users</button>
+      <button onclick="showSection('orders', event)">Orders</button>
+    </div>
+    <div class="logout">
+      <button class="btn btn-outline-light w-100" onclick="logout()">Logout</button>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="content">
+    <!-- DASHBOARD -->
+    <div id="dashboard" class="section">
+      <!-- CHARTS -->
+      <div class="chart-row">
+        <div class="card chart-card">
+          <h4>💰 Monthly Income</h4>
+          <canvas id="incomeChart" height="200"></canvas>
+        </div>
+        <div class="card chart-card">
+          <h4>👥 Users Usage</h4>
+          <canvas id="usersChart" height="200"></canvas>
+        </div>
+        <div class="card chart-card">
+          <h4>📈 Total Profit</h4>
+          <canvas id="profitChart" height="200"></canvas>
+        </div>
+      </div>
+
+      <!-- ADD FOOD -->
+      <div class="card mb-4">
+        <h4>📋 Add Food</h4>
+        <div class="row g-2">
+          <div class="col-md-4"><input id="foodName" class="form-control" placeholder="Food Name"></div>
+          <div class="col-md-2"><input id="foodPrice" class="form-control" type="number" placeholder="Price"></div>
+          <div class="col-md-4"><input id="foodImage" class="form-control" placeholder="Image filename"></div>
+          <div class="col-md-2"><button class="btn btn-add w-100" onclick="addFood()">Add</button></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- USERS -->
+    <div id="users" class="section" style="display:none;">
+      <div class="card">
+        <h4>👥 User List</h4>
+        <table class="table table-striped">
+          <thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Role</th><th>Actions</th></tr></thead>
+          <tbody id="userTable"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ORDERS -->
+    <div id="orders" class="section" style="display:none;">
+      <div class="card">
+        <h4>🧾 Orders</h4>
+        <table class="table table-bordered align-middle">
+          <thead><tr><th>Order ID</th><th>Customer</th><th>Food</th><th>Qty</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="orderTable"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- EDIT ORDER -->
+    <div class="card mb-4" id="editOrderCard" style="display:none;">
+      <h4>✏️ Edit Order</h4>
+      <div class="row g-2">
+        <div class="col-md-3"><input id="editCustomer" class="form-control" placeholder="Customer Name" disabled></div>
+        <div class="col-md-3"><select id="editFood" class="form-control"></select></div>
+        <div class="col-md-2"><input id="editQty" class="form-control" type="number" placeholder="Quantity"></div>
+        <div class="col-md-2"><select id="editStatus" class="form-control"><option value="pending">Pending</option><option value="accepted">Accepted</option></select></div>
+        <div class="col-md-2"><button class="btn btn-edit w-100" onclick="saveOrder()">Save</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// ---------- SIDEBAR & LOGOUT ----------
+function showSection(id, e){
+  document.querySelectorAll('.section').forEach(s=>s.style.display='none');
+  document.getElementById(id).style.display='block';
+  document.querySelectorAll('.sidebar .menu button').forEach(b=>b.classList.remove('active'));
+  e.target.classList.add('active');
+}
+function logout(){ alert("Logged out"); }
+
+// ---------- GLOBAL VARIABLES ----------
+let foods = [];
+let users = [];
+let orders = [];
+let currentEditOrder = null;
+
+// ---------- FETCH FUNCTIONS ----------
+async function fetchFoods(){
+  const res = await fetch('http://127.0.0.1:5000/foods');
+  foods = await res.json();
+  const editFood = document.getElementById('editFood');
+  editFood.innerHTML = '';
+  foods.forEach(f=>{
+    const option = document.createElement('option');
+    option.value = f.id;
+    option.textContent = f.name;
+    editFood.appendChild(option);
+  });
+}
+
+async function fetchUsers(){
+  const res = await fetch('http://127.0.0.1:5000/users');
+  users = await res.json();
+  loadUsers();
+}
+
+async function fetchOrders(){
+  const res = await fetch('http://127.0.0.1:5000/orders');
+  orders = await res.json();
+  loadOrders();
+  updateCharts();
+}
+
+// ---------- ADD FOOD ----------
+async function addFood(){
+  const name = document.getElementById('foodName').value.trim();
+  const price = parseFloat(document.getElementById('foodPrice').value);
+  const image = document.getElementById('foodImage').value.trim();
+  if(!name||!price){ alert("Enter name and price"); return; }
+  await fetch('http://127.0.0.1:5000/foods', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({name, price, image})
+  });
+  alert('Food added');
+  document.getElementById('foodName').value='';
+  document.getElementById('foodPrice').value='';
+  document.getElementById('foodImage').value='';
+  fetchFoods();
+  fetchOrders();
+}
+
+// ---------- LOAD USERS ----------
+function loadUsers(){
+  const table = document.getElementById('userTable');
+  table.innerHTML='';
+  if(users.length===0){ table.innerHTML="<tr><td colspan='5' class='text-center'>No users found</td></tr>"; return; }
+  users.forEach(u=>{
+    table.innerHTML += `<tr>
+      <td>${u.id}</td>
+      <td>${u.name}</td>
+      <td>${u.email}</td>
+      <td>${u.role}</td>
+      <td>
+        <button class="btn btn-sm btn-edit me-1" onclick="editUser(${u.id})">Edit</button>
+        <button class="btn btn-sm btn-delete" onclick="deleteUser(${u.id})">Delete</button>
+      </td>
+    </tr>`;
+  });
+}
+
+// ---------- EDIT / DELETE USERS ----------
+function editUser(id){
+  const u = users.find(x=>x.id===id);
+  const newName = prompt("Edit Name:", u.name);
+  const newRole = prompt("Edit Role:", u.role);
+  if(newName && newRole){
+    fetch(`http://127.0.0.1:5000/users/${id}`,{
+      method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify({name:newName, role:newRole})
+    }).then(()=>fetchUsers());
+  }
+}
+function deleteUser(id){
+  if(confirm("Delete this user?")){
+    fetch(`http://127.0.0.1:5000/users/${id}`, {method:'DELETE'}).then(()=>fetchUsers());
+  }
+}
+
+// ---------- LOAD ORDERS ----------
+function loadOrders(){
+  const table = document.getElementById('orderTable');
+  table.innerHTML='';
+  if(orders.length===0){ table.innerHTML="<tr><td colspan='6' class='text-center'>No orders yet</td></tr>"; return; }
+  orders.forEach(o=>{
+    table.innerHTML += `<tr>
+      <td>${o.order_id}</td>
+      <td>${o.customer}</td>
+      <td>${o.food}</td>
+      <td>${o.quantity}</td>
+      <td><span class="badge ${o.status==='accepted'?'bg-success':'bg-warning text-dark'} badge-status">${o.status}</span></td>
+      <td>
+        <button class="btn btn-sm btn-edit me-1" onclick="editOrder(${o.order_id})">Edit</button>
+        <button class="btn btn-sm btn-delete" onclick="deleteOrder(${o.order_id})">Delete</button>
+      </td>
+    </tr>`;
+  });
+}
+
+// ---------- EDIT / DELETE ORDERS ----------
+function editOrder(id){
+  const o = orders.find(x=>x.order_id===id);
+  currentEditOrder = o.order_id;
+  document.getElementById('editOrderCard').style.display='block';
+  document.getElementById('editCustomer').value=o.customer;
+  document.getElementById('editFood').value=foods.find(f=>f.name===o.food)?.id||'';
+  document.getElementById('editQty').value=o.quantity;
+  document.getElementById('editStatus').value=o.status;
+}
+function saveOrder(){
+  const foodId = parseInt(document.getElementById('editFood').value);
+  const quantity = parseInt(document.getElementById('editQty').value);
+  const status = document.getElementById('editStatus').value;
+  fetch(`http://127.0.0.1:5000/orders/${currentEditOrder}`, {
+    method:'PUT', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({food_id:foodId, quantity, status})
+  }).then(()=>{
+    fetchOrders();
+    document.getElementById('editOrderCard').style.display='none';
+  });
+}
+function deleteOrder(id){
+  if(confirm("Delete this order?")){
+    fetch(`http://127.0.0.1:5000/orders/${id}`, {method:'DELETE'}).then(()=>fetchOrders());
+  }
+}
+
+function loadOrders(){
+  const table = document.getElementById('orderTable');
+  table.innerHTML='';
+  if(orders.length===0){ 
+    table.innerHTML="<tr><td colspan='6' class='text-center'>No orders yet</td></tr>"; 
+    return; 
+  }
+  orders.forEach(o=>{
+    table.innerHTML += `<tr>
+      <td>${o.order_id}</td>
+      <td>${o.customer}</td>
+      <td>${o.food}</td>
+      <td>${o.quantity}</td>
+      <td><span class="badge ${o.status==='accepted'?'bg-success':'bg-warning text-dark'} badge-status">${o.status}</span></td>
+      <td>
+        ${o.status==='pending'?`<button class="btn btn-sm btn-add me-1" onclick="acceptOrder(${o.order_id})">Accept</button>`:''}
+        <button class="btn btn-sm btn-edit me-1" onclick="editOrder(${o.order_id})">Edit</button>
+        <button class="btn btn-sm btn-delete" onclick="deleteOrder(${o.order_id})">Delete</button>
+      </td>
+    </tr>`;
+  });
+}
+
+function acceptOrder(id){
+  fetch(`http://127.0.0.1:5000/orders/${id}`, {
+    method:'PUT',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({status:'accepted'})
+  }).then(()=>fetchOrders());
+}
+
+
+// ---------- CHARTS ----------
+let incomeChart, usersChart, profitChart;
+function updateCharts(){
+  const ctxIncome = document.getElementById('incomeChart').getContext('2d');
+  const ctxUsers = document.getElementById('usersChart').getContext('2d');
+  const ctxProfit = document.getElementById('profitChart').getContext('2d');
+
+  // MONTHS
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  // INCOME
+  const monthlyIncome = months.map((m,i)=>{
+    return orders.filter(o=>{
+      const d = new Date();
+      return o.status==='accepted';
+    }).reduce((a,b)=>a+(b.quantity*(b.food_price||20)),0);
+  });
+  if(incomeChart) incomeChart.destroy();
+  incomeChart = new Chart(ctxIncome,{type:'bar', data:{labels:months, datasets:[{label:'Income ($)', data:monthlyIncome, backgroundColor:'#27ae60'}]}, options:{responsive:true}});
+
+  // USERS USAGE
+  const monthlyUsers = months.map(()=>Math.floor(Math.random()*10+1)); // example, replace with real user data per month if available
+  if(usersChart) usersChart.destroy();
+  usersChart = new Chart(ctxUsers,{type:'line', data:{labels:months, datasets:[{label:'Users', data:monthlyUsers, borderColor:'#2980b9', fill:false, tension:0.3}]} , options:{responsive:true}});
+
+  // TOTAL PROFIT
+  const totalProfit = orders.filter(o=>o.status==='accepted').reduce((a,b)=>a+(b.quantity*(b.food_price||20)),0);
+  if(profitChart) profitChart.destroy();
+  profitChart = new Chart(ctxProfit,{type:'doughnut', data:{labels:['Profit','Remaining'], datasets:[{data:[totalProfit,10000-totalProfit>0?10000-totalProfit:0], backgroundColor:['#27ae60','#f39c12']}]}, options:{responsive:true}});
+}
+
+// ---------- INIT ----------
+document.addEventListener('DOMContentLoaded', ()=>{
+  fetchFoods();
+  fetchUsers();
+  fetchOrders();
+});
+</script>
+</body>
+</html>

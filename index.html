@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FoodieGo | Register</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<div id="toast" class="toast"></div>
+
+<body>
+
+<div class="container">
+  <div class="row justify-content-center">
+    <div class="col-md-5">
+      <div class="card register-card shadow-lg p-4">
+        <h3 class="text-center mb-3">Create Account</h3>
+        <p class="text-center text-muted mb-4">
+          Join FoodieGo and order your favorite food 🍔
+        </p>
+
+        <input id="name" class="form-control mb-3" placeholder="Full Name">
+        <input id="email" class="form-control mb-3" placeholder="Email Address">
+        <input id="password" type="password" class="form-control mb-3" placeholder="Password">
+
+        <button class="btn btn-primary w-100" onclick="register()">Register</button>
+
+        <p class="text-center mt-3">
+          Already have an account?
+          <a href="login.html" style="color: rgba(76, 175, 80, 0.8);">Login here</a>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function showToast(message, type = "success") {
+  const toast = document.getElementById("toast");
+  toast.textContent = message;
+  toast.className = `toast show ${type}`;
+
+  setTimeout(() => {
+    toast.className = "toast";
+  }, 3000);
+}
+
+async function register() {
+  const name = document.getElementById("name").value.trim();
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value.trim();
+
+  if (!name || !email || !password) {
+    showToast("Please fill all fields", "error");
+    return;
+  }
+
+  try {
+    const res = await fetch("http://127.0.0.1:5000/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, email, password })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      showToast(data.message || "Registration failed", "error");
+      return;
+    }
+
+    showToast("🎉 Registration successful! Redirecting...", "success");
+
+    setTimeout(() => {
+      window.location.href = "login.html";
+    }, 1500);
+
+  } catch (err) {
+    console.error("Register error:", err);
+    showToast("Server error. Try again later.", "error");
+  }
+}
+</script>
+
+
+</body>
+</html>
